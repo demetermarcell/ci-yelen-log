@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Project, Contributor
+from .models import Project, Contributor, Timesheet, Day
 from django_summernote.admin import SummernoteModelAdmin
 
 
@@ -22,4 +22,5 @@ class ProjectAdmin(SummernoteModelAdmin):
 
 
 # Register your models here.
-
+admin.site.register(Timesheet)
+admin.site.register(Day)

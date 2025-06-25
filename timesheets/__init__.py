@@ -1,0 +1,1 @@
+default_app_config = 'timesheets.apps.TimesheetsConfig' # This line ensures that the custom app configuration is used when Django starts up.
