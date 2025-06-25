@@ -108,6 +108,8 @@ class Timesheet(models.Model):
 
     # Validation:
     def clean(self):
+        if not self.project or not self.start_date or not self.end_date:
+            return
         # Validate start date is before end date:
         if self.start_date > self.end_date:
             raise ValidationError({'end_date': "End date must be after start date."})

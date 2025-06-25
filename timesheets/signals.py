@@ -14,5 +14,5 @@ def generate_days_for_timesheet(sender, instance, created, **kwargs):
             day_date = instance.start_date + timedelta(days=i)
             Day.objects.create(
                 timesheet=instance,
-                date=day_date,
+                day_date=day_date,
             )
