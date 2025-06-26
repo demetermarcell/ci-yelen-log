@@ -20,20 +20,35 @@ CONTRIBUTOR_STATUS = (
 )
 
 # Timesheet Statuses:
-TIMESHEET_STATUS = [
+TIMESHEET_STATUS = (
     ('draft', 'Draft'),
     ('submitted', 'Submitted'),
     ('approved', 'Approved'),
     ('rejected', 'Rejected')
-]
+)
 
 # Day Statuses:
-DAY_STATUS = [
+DAY_STATUS = (
     ('working', 'Working Day'),
     ('sick', 'Sick Day'),
     ('off', 'Day Off'),
     ('weekend', 'Weekend')
-]
+)
+
+# Task Types:
+TASK_TYPE = (
+    ('development', 'Development'),
+    ('code_review', 'Code Review'),
+    ('bug_fixing', 'Bug Fixing'),
+    ('testing', 'Testing'),       
+    ('internal_meeting', 'Internal Meeting'),
+    ('external_meeting', 'External Meeting'),
+    ('admin', 'Admin'),
+    ('documentation', 'Documentation'),
+    ('support', 'Support'),
+    ('other', 'Other'),
+)
+
 # Create your models here.
 
 
@@ -108,8 +123,6 @@ class Timesheet(models.Model):
 
     # Validation:
     def clean(self):
-        if not self.project or not self.start_date or not self.end_date:
-            return
         # Validate start date is before end date:
         if self.start_date > self.end_date:
             raise ValidationError({'end_date': "End date must be after start date."})
@@ -135,6 +148,12 @@ class Timesheet(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    # Update total hours logged:
+    def update_total_hours(self):
+        total = self.days.aggregate(models.Sum('total_hours_logged'))['total_hours_logged__sum'] or 0
+        self.total_hours_logged = total
+        self.save(update_fields=['total_hours_logged'])
+
     # String Representation:
     def __str__(self):
         return f"Timesheet of {self.user.username} for {self.project.name} for the week of {self.start_date} - ({self.status})"
@@ -148,6 +167,7 @@ class Day(models.Model):
     status = models.CharField(max_length=10, choices=DAY_STATUS)
     comments = models.TextField(blank=True)
     day_name = models.CharField(max_length=10, editable=False)
+    total_hours_logged = models.FloatField(default=0)
 
     # Meta options:
     class Meta:
@@ -165,8 +185,81 @@ class Day(models.Model):
             else:
                 self.status = 'working'
 
+        # Delete tasks if status is changed from 'working' to something else
+        if self.pk:
+            try:
+                old = Day.objects.get(pk=self.pk)
+                if old.status == 'working' and self.status != 'working':
+                    self.task_entries.all().delete()
+                    self.total_hours_logged = 0
+            except Day.DoesNotExist:
+                pass  # safe fallback if instance is deleted between fetch and save
+
         super().save(*args, **kwargs)
+
+    # Update total hours logged:
+    def update_total_hours(self, cascade=True):
+        # Safeguard. Avoid updating if the Day hasn't been saved yet
+        if not self.pk:
+            return
+
+        total = self.task_entries.aggregate(models.Sum('hours_logged'))['hours_logged__sum'] or 0
+        total = min(total, 24)
+
+        if total != self.total_hours_logged:
+            self.total_hours_logged = total
+            self.save(update_fields=['total_hours_logged'])
+
+            if cascade:
+                self.timesheet.update_total_hours()
 
     # String Representation:
     def __str__(self):
-        return f"{self.day_name} ({self.day_date}) - {self.get_status_display()}"
+        return f"{self.timesheet.user.username} - {self.day_name} ({self.day_date}) - {self.get_status_display()}"
+
+
+# Task Model:
+class Task(models.Model):
+    # Fields:
+    day = models.ForeignKey(Day, on_delete=models.CASCADE, related_name='task_entries')
+    task_type = models.CharField(max_length=20, choices=TASK_TYPE, default='other')
+    hours_logged = models.FloatField()
+
+    # Validation:
+    def clean(self):
+        # Ensure day status is 'working':
+        if self.day.status != 'working':
+            raise ValidationError('Tasks can only be logged on working days.')
+        #  Ensure hours are within valid range:
+        if not (0 <= self.hours_logged <= 24):
+            raise ValidationError({
+                'hours_logged': 'Hours logged must be between 0 and 24.'
+            })
+        # Total including this task must not exceed 24
+        existing_total = self.day.task_entries.exclude(pk=self.pk).aggregate(
+            models.Sum('hours_logged')
+        )['hours_logged__sum'] or 0
+
+        if existing_total + self.hours_logged > 24:
+            raise ValidationError("Total logged hours for the day cannot exceed 24.")
+
+    # Meta options:
+    class Meta:
+        unique_together = ('day', 'task_type')  # Prevent duplicate tasks of the same type on the same day
+        ordering = ['day__day_date', 'task_type']  # Order by date then task type
+
+    # Save Method:
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Ensures `clean()` and field validators run before saving
+        super().save(*args, **kwargs)
+        self.day.update_total_hours()
+
+    # Delete Method:
+    # Ensures total hours are updated when a task is deleted
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.day.update_total_hours()
+
+    # String Representation:
+    def __str__(self):
+        return f"{self.get_task_type_display()} - {self.hours_logged}h on {self.day.day_date}"
