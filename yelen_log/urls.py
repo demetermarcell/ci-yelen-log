@@ -16,10 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from timesheets import views as timesheets_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', timesheets_views.index, name='index'),
+    path('', include('timesheets.urls'), name='timesheet_urls'),
     path('summernote/', include('django_summernote.urls')),
 ]
