@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'allauth',
     'allauth.account',
+    'crispy_forms',
+    'crispy_bootstrap5',
     'django_summernote',
     'timesheets.apps.TimesheetsConfig',  # Your custom app with signals
 ]
@@ -55,6 +57,10 @@ INSTALLED_APPS = [
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
