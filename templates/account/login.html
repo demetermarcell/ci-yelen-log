@@ -7,28 +7,27 @@
 
 
 {% block head_title %}
-    <title>{% trans "Sign In" %}</title>
+<title>{% trans "Sign In" %}</title>
 {% endblock %}
 
 {% block entrance_box %}
-    <img src="{% static 'images/yelen_logo.png' %}" alt="Yelen Log Logo" class="logo-img">
+<img src="{% static 'images/yelen_logo_horizontal.svg' %}" alt="Yelen Log Logo" class="logo-img">
+<h4 class="mb-1">Sign in </h4>
+<form method="POST" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {{ form.login|as_crispy_field }}
+    {{ form.password|as_crispy_field }}
 
-    <h4 class="mb-4">Welcome to Yelen Log</h4>
-
-    <form method="POST" action="{% url 'account_login' %}">
-        {% csrf_token %}
-        {{ form.login|as_crispy_field }}
-        {{ form.password|as_crispy_field }}
-
-        <div class="form-check mb-3 d-flex justify-content-center align-items-center gap-2">
-            <input class="form-check-input" type="checkbox" name="remember" id="remember">
-            <label class="form-check-label" for="remember">Remember Me</label>
-        </div>
-
-        <button type="submit" class="btn login-btn w-100 mb-3">Sign In</button>
-    </form>
-
-    <div class="links text-center">
-        <p>New to Yelen Log? <a href="{% url 'account_signup' %}">Create an account</a></p>
+    <div class="form-check mb-3 d-flex justify-content-center align-items-center gap-2">
+        <input class="form-check-input" type="checkbox" name="remember" id="remember">
+        <label class="form-check-label" for="remember">Remember Me</label>
     </div>
+
+    <button type="submit" class="btn login-btn w-100 mb-3">Sign In</button>
+</form>
+
+<div class="links text-center">
+    <p>New to Yelen Log? <a href="{% url 'account_signup' %}">Create an account</a></p>
+</div>
 {% endblock %}

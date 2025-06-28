@@ -52,6 +52,12 @@ a:active {
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
     text-align: center;
 }
+/* Hide Forgot Password link  */
+#id_password_helptext {
+    display: none;
+}
+
+
 
 .login-btn {
     background-color: var(--brand-dark);
@@ -65,9 +71,15 @@ a:active {
 }
 
 .logo-img {
-    max-width: 120px;
-}
+    height: 8vh;
+    width: 30vh;
+  }
 
+/* Signup */
+/* Hide Email div on signup */
+#div_id_email {
+    display: none;
+}
 
 
 /*  Media queries */
