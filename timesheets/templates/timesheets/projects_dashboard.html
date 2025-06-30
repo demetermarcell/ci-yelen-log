@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Projects Dashboard</h2>
+
+    {% if owned_projects and assigned_projects %}
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-3" id="projectTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="my-projects-tab" data-bs-toggle="tab" data-bs-target="#my-projects" type="button" role="tab">My Projects</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="assigned-projects-tab" data-bs-toggle="tab" data-bs-target="#assigned-projects" type="button" role="tab">Assigned Projects</button>
+            </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content" id="projectTabsContent">
+            <div class="tab-pane fade show active" id="my-projects" role="tabpanel">
+                {% include "dashboard/project_table.html" with projects=owned_projects %}
+            </div>
+            <div class="tab-pane fade" id="assigned-projects" role="tabpanel">
+                {% include "dashboard/project_table.html" with projects=assigned_projects %}
+            </div>
+        </div>
+    
+    {% elif owned_projects %}
+        <h4>My Projects</h4>
+        {% include "timesheets/project_table.html" with projects=owned_projects %}
+    
+    {% elif assigned_projects %}
+        <h4>Assigned Projects</h4>
+        {% include "timesheets/project_table.html" with projects=assigned_projects %}
+    
+    {% else %}
+        <p>You have no assigned or owned projects at the moment. Please contact site admin.</p>
+    {% endif %}
+</div>
+{% endblock %}

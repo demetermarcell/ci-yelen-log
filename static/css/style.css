@@ -15,7 +15,7 @@
 
 body {
     font-family: var(--brand-font) !important;
-    background-color: var(--brand-dark);
+    background-color: white;
     margin: 1.5vh;
     min-height: 100vh;
 }
@@ -36,6 +36,10 @@ a:active {
 
 
 /* Login */
+
+.login-body {
+    background-color: var(--brand-dark);
+}
 .login-wrapper {
     display: flex;
     justify-content: center;
