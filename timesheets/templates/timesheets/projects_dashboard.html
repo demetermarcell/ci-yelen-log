@@ -17,10 +17,10 @@
         <!-- Tabs Content -->
         <div class="tab-content" id="projectTabsContent">
             <div class="tab-pane fade show active" id="my-projects" role="tabpanel">
-                {% include "dashboard/project_table.html" with projects=owned_projects %}
+                {% include "timesheets/project_table.html" with projects=owned_projects %}
             </div>
             <div class="tab-pane fade" id="assigned-projects" role="tabpanel">
-                {% include "dashboard/project_table.html" with projects=assigned_projects %}
+                {% include "timesheets/project_table.html" with projects=assigned_projects %}
             </div>
         </div>
     

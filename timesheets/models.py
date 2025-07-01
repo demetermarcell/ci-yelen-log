@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from datetime import timedelta
 from django.db.models import Q
+from uuid import uuid4
+
 
 # CHOICES
 
@@ -56,6 +58,7 @@ TASK_TYPE = (
 class Project(models.Model):
     # Fields:
     name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, editable=False, blank=True) # Unique slug for encrypted URLs
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
@@ -67,6 +70,10 @@ class Project(models.Model):
         related_name='contributed_projects'
     )
 
+    # Meta options:
+    class Meta:
+        unique_together = ('name', 'start_date')
+
     # Validation:
     def clean(self):
         if self.end_date and self.start_date > self.end_date:
@@ -76,12 +83,15 @@ class Project(models.Model):
 
     # Save Method:
     def save(self, *args, **kwargs):
+        # Autogenerate slug, unique per project, for encrypded URLs.
+        if not self.slug:
+            self.slug = uuid4().hex[:12]
         self.full_clean()  # Enforces the clean() validation before saving
         super().save(*args, **kwargs)
 
     # String Representation:
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.start_date})"
 
 
 # Contributor Model:
@@ -103,11 +113,12 @@ class Contributor(models.Model):
 # Timesheet Model:
 class Timesheet(models.Model):
     # Fields:
+    slug = models.SlugField(unique=True, editable=False, blank=True)  # Unique slug for encrypted URLs
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='timesheets')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='timesheets')
     start_date = models.DateField()
     end_date = models.DateField()
-    total_hours_logged = models.FloatField(default=0)  # SUM of all task hours
+    total_hours_logged = models.FloatField(default=0, editable=False)  # SUM of all task hours
     status = models.CharField(
         max_length=20,
         choices=TIMESHEET_STATUS,
@@ -123,6 +134,19 @@ class Timesheet(models.Model):
 
     # Validation:
     def clean(self):
+        # Skip validation if required fields are missing
+        if not self.start_date or not self.end_date or not self.project:
+            return
+        # Validate the user is an active contributor to the project:
+        if not Contributor.objects.filter(
+                user=self.user,
+                project=self.project,
+                status='active'
+        ).exists():
+            raise ValidationError({'user': "User must be an active contributor to the project."})
+        # Validate the project is active:
+        if self.project.status != 'active':
+            raise ValidationError({'project': "Project must be active to log timesheets."})
         # Validate start date is before end date:
         if self.start_date > self.end_date:
             raise ValidationError({'end_date': "End date must be after start date."})
@@ -145,6 +169,9 @@ class Timesheet(models.Model):
 
     # Save Method:
     def save(self, *args, **kwargs):
+        # Autogenerate slug, unique per project, for encrypded URLs.
+        if not self.slug:
+            self.slug = uuid4().hex[:12]
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -167,7 +194,7 @@ class Day(models.Model):
     status = models.CharField(max_length=10, choices=DAY_STATUS)
     comments = models.TextField(blank=True)
     day_name = models.CharField(max_length=10, editable=False)
-    total_hours_logged = models.FloatField(default=0)
+    total_hours_logged = models.FloatField(default=0, editable=False) 
 
     # Meta options:
     class Meta:
