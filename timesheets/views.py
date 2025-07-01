@@ -19,6 +19,6 @@ def projects_dashboard(request):
 
 
 @login_required
-def project_view(request, pk):
-    project = get_object_or_404(Project, pk=pk)
+def project_view(request, slug):
+    project = get_object_or_404(Project, slug=slug)
     return render(request, 'timesheets/project_view.html', {'project': project})

@@ -15,7 +15,7 @@
             <td>{{ project.start_date }}</td>
             <td>{{ project.end_date|default:"—" }}</td>
             <td>{{ project.get_status_display }}</td>
-            <td><a href="{% url 'project_view' project.pk %}" class="btn btn-sm btn-primary">View</a></td>
+            <td><a href="{% url 'project_view' project.slug %}" class="btn btn-sm btn-primary">View</a></td>
         </tr>
         {% endfor %}
     </tbody>
