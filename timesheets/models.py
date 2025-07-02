@@ -166,6 +166,9 @@ class Timesheet(models.Model):
         )
         if overlapping_timesheets.exists():
             raise ValidationError("This timesheet overlaps with an existing one for the same user and project.")
+        # Timesheet max duration is 7 days:
+        if (self.end_date - self.start_date).days > 6:
+            raise ValidationError("Timesheet duration cannot exceed 7 days.")
 
     # Save Method:
     def save(self, *args, **kwargs):

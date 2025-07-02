@@ -134,15 +134,13 @@ def create_timesheet(request, slug):
             messages.success(request, "Timesheet created.")
             # Redirect to edit view:
             return HttpResponseRedirect(reverse('timesheet_edit', args=[timesheet.slug]))
-        # Remove __all__ from Validation Error messages:
+        # Remove field names and formatting clutter from ValidationError messages:
         except ValidationError as e:
             errors = []
             for field, msgs in e.message_dict.items():
-                if field == '__all__':
-                    errors.extend(msgs)  # Don't prepend field name
-                else:
-                    errors.extend([f"{field}: {msg}" for msg in msgs])
-            messages.error(request, " ".join(errors))
+                errors.extend(msgs)  # Just collect the plain messages
+            clean_error_text = " ".join(errors)
+            messages.error(request, clean_error_text)
             return HttpResponseRedirect(reverse('project_view', args=[slug]))
 
 # Edit Timesheet:
