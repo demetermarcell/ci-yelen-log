@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <!-- Timesheet Details: -->
+    <div class="mb-4">
+        <p><strong>Project:</strong> {{ timesheet.project.name }}</p>
+        <p><strong>User:</strong> {{ timesheet.user.username }}</p>
+        <p><strong>Status:</strong> {{ timesheet.get_status_display }}</p>
+        <p><strong>Total hours logged:</strong> {{ timesheet.total_hours_logged }}</p>
+    </div>
+
+{% endblock %}
