@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
-from .models import Project, Timesheet
-
+from .models import Project, Timesheet, Day
+from django.db.models import Prefetch 
 
 # Create your views here.
 @login_required
@@ -50,6 +50,9 @@ def project_view(request, slug):
 def timesheet_view(request, slug):
     timesheet = get_object_or_404(Timesheet, slug=slug)
 
+    days = Day.objects.filter(timesheet=timesheet).order_by('day_date').prefetch_related('task_entries')
+
     return render(request, 'timesheets/timesheet_view.html', {
         'timesheet': timesheet,
+        'days': days,
     })

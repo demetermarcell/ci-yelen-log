@@ -1,6 +1,69 @@
 {% extends "base.html" %}
 {% block content %}
-<div>
-    Timesheet View for {{ timesheet.slug}}.
+<div class="container mt-4">
+    <h2>Timesheet Details</h2>
+
+    <!-- Timesheet Details: -->
+    <div class="mb-4">
+        <p><strong>Project:</strong> {{ timesheet.project.name }}</p>
+        <p><strong>User:</strong> {{ timesheet.user.username }}</p>
+        <p><strong>Status:</strong> {{ timesheet.get_status_display }}</p>
+    </div>
+
+    <!-- Day/Task Data:-->
+    <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+            <thead>
+                <tr>
+                    <th class="text-start">Details</th>
+                    {% for day in days %}
+                    <th>{{ day.day_name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th class="text-start">Date</th>
+                    {% for day in days %}
+                    <td>{{ day.day_date }}</td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th class="text-start">Status</th>
+                    {% for day in days %}
+                    <td>{{ day.get_status_display }}</td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th class="text-start">Hours Logged</th>
+                    {% for day in days %}
+                    <td>{{ day.total_hours_logged }}</td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th class="text-start">Comment</th>
+                    {% for day in days %}
+                    <td>{{ day.comments|default:"—" }}</td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th class="text-start">Tasks</th>
+                    {% for day in days %}
+                    <td>
+                        {% if day.task_entries.all %}
+                        <ul class="list-unstyled mb-0 ps-0">
+                            {% for task in day.task_entries.all %}
+                            <li>{{ task.get_task_type_display }} – {{ task.hours_logged }}h</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <em>No tasks</em>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
