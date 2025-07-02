@@ -9,6 +9,7 @@
                 <th>Hours Logged</th>
                 <th>Status</th>
                 <th>Submitted On</th>
+                <th>Approved On</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -16,15 +17,16 @@
             {% for ts in timesheets %}
             <tr>
                 <td>{{ ts.user.username }}</td>
-                <td>{{ ts.start_date }}</td>
-                <td>{{ ts.end_date }}</td>
+                <td>{{ ts.start_date|date:"d-m-Y" }}</td>
+                <td>{{ ts.end_date|date:"d-m-Y" }}</td>
                 <td>{{ ts.total_hours_logged }}</td>
                 <td>{{ ts.get_status_display }}</td>
-                <td>{{ ts.submitted_on|date:"Y-m-d H:i" }}</td>
+                <td>{{ ts.submitted_on|date:"d-m-Y" }}</td>
+                <td>{{ ts.approved_on|date:"d-m-Y" }}</td>
                 <td>
                     {% if ts.status == 'draft' %}
                     <a href="{% url 'timesheet_view' ts.slug %}" class="btn btn-sm btn-warning">Edit</a>
-                    {% elif ts.status in 'submitted rejected' %}
+                    {% elif ts.status in 'submitted rejected approved' %}
                     <a href="{% url 'timesheet_view' ts.slug %}" class="btn btn-sm btn-primary">View</a>
                     {% endif %}
                 </td>

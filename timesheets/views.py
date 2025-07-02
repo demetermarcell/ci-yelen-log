@@ -1,7 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 from .models import Project, Timesheet, Day
-from django.db.models import Prefetch 
+from django.db.models import Prefetch
+from django.http import HttpResponseRedirect
+from django.contrib import messages
+from django.utils import timezone
+from django.urls import reverse
 
 # Create your views here.
 @login_required
@@ -50,9 +54,28 @@ def project_view(request, slug):
 def timesheet_view(request, slug):
     timesheet = get_object_or_404(Timesheet, slug=slug)
 
+    project = timesheet.project
+    user = request.user
+    is_owner = user == project.owner
+    # Approve/Reject logic only for owners:
+    if request.method == "POST" and is_owner and timesheet.status == "submitted":
+        action = request.POST.get("action")
+        if action == "approve":
+            timesheet.status = "approved"
+            timesheet.approved_on = timezone.now()
+            timesheet.save()
+            messages.success(request, "Timesheet approved.")
+        elif action == "reject":
+            timesheet.status = "rejected"
+            timesheet.save()
+            messages.warning(request, "Timesheet rejected.")
+        return HttpResponseRedirect(reverse('timesheet_view', args=[timesheet.slug]))
+
+
     days = Day.objects.filter(timesheet=timesheet).order_by('day_date').prefetch_related('task_entries')
 
     return render(request, 'timesheets/timesheet_view.html', {
         'timesheet': timesheet,
         'days': days,
+        'is_owner': is_owner,
     })

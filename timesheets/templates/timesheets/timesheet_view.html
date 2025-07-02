@@ -8,6 +8,7 @@
         <p><strong>Project:</strong> {{ timesheet.project.name }}</p>
         <p><strong>User:</strong> {{ timesheet.user.username }}</p>
         <p><strong>Status:</strong> {{ timesheet.get_status_display }}</p>
+        <p><strong>Total hours logged:</strong> {{ timesheet.total_hours_logged }}</p>
     </div>
 
     <!-- Day/Task Data:-->
@@ -25,7 +26,7 @@
                 <tr>
                     <th class="text-start">Date</th>
                     {% for day in days %}
-                    <td>{{ day.day_date }}</td>
+                    <td>{{ day.day_date|date:"d-m-Y"}}</td>
                     {% endfor %}
                 </tr>
                 <tr>
@@ -65,5 +66,63 @@
             </tbody>
         </table>
     </div>
+    {% if is_owner and timesheet.status == 'submitted' %}
+<div class="mb-3">
+    <!-- Approve Button -->
+    <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#approveModal">
+        Approve Timesheet
+    </button>
+    <!-- Reject Button -->
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+        Reject Timesheet
+    </button>
+</div>
+
+<!-- Approve Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="approve">
+        <div class="modal-header">
+          <h5 class="modal-title" id="approveModalLabel">Approve Timesheet</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to approve this timesheet?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+          <button type="submit" class="btn btn-success">Yes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reject">
+        <div class="modal-header">
+          <h5 class="modal-title" id="rejectModalLabel">Reject Timesheet</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to reject this timesheet?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+          <button type="submit" class="btn btn-danger">Yes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
 </div>
 {% endblock %}
