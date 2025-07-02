@@ -1,8 +1,45 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block content %}
-{% load static %}
+<div class="container mt-4">
+    <h2>{{ project.name }}</h2>
+    <p>{{ project.description | safe }}</p>
+    <p><strong>Start:</strong> {{ project.start_date }}</p>
+    <p><strong>End:</strong> {{ project.end_date|default:"—" }}</p>
+    <p><strong>Owner:</strong> {{ project.owner.username }}</p>
 
-<div>
-    <p>Hello Project </p>
+    {% if is_owner %}
+        <h5>Contributors:</h5>
+        <ul>
+            {% for contributor in contributors %}
+                <li>{{ contributor.username }}</li>
+            {% empty %}
+                <li>No contributors</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <a href="#" class="btn btn-primary mb-4">Create Timesheet</a>
+
+    <ul class="nav nav-tabs" id="timesheetTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="my-ts-tab" data-bs-toggle="tab" data-bs-target="#my-ts" type="button" role="tab">My Timesheets</button>
+        </li>
+        {% if is_owner %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="project-ts-tab" data-bs-toggle="tab" data-bs-target="#project-ts" type="button" role="tab">Project Timesheets</button>
+        </li>
+        {% endif %}
+    </ul>
+
+    <div class="tab-content pt-3" id="timesheetTabsContent">
+        <div class="tab-pane fade show active" id="my-ts" role="tabpanel">
+            {% include "timesheets/timesheet_table.html" with timesheets=my_timesheets %}
+        </div>
+        {% if is_owner %}
+        <div class="tab-pane fade" id="project-ts" role="tabpanel">
+            {% include "timesheets/timesheet_table.html" with timesheets=project_timesheets %}
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
