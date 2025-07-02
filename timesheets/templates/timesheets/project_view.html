@@ -19,7 +19,7 @@
     </ul>
     {% endif %}
     <!-- Create Timesheet Button -->
-    {% if is_contributor %}
+    {% if is_contributor and project.status == 'active' %}
     <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createTimesheetModal">
         Create Timesheet
     </button>
