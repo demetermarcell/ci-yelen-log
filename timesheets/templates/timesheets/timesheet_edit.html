@@ -1,11 +1,154 @@
 {% extends "base.html" %}
-{% block content %}
-    <!-- Timesheet Details: -->
-    <div class="mb-4">
-        <p><strong>Project:</strong> {{ timesheet.project.name }}</p>
-        <p><strong>User:</strong> {{ timesheet.user.username }}</p>
-        <p><strong>Status:</strong> {{ timesheet.get_status_display }}</p>
-        <p><strong>Total hours logged:</strong> {{ timesheet.total_hours_logged }}</p>
-    </div>
+{% load static %}
 
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Timesheet</h2>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="form-action" value="submit">
+
+        <!-- Timesheet Summary -->
+        <div class="mb-3">
+            <p><strong>Project:</strong> {{ timesheet.project.name }}</p>
+            <p><strong>User:</strong> {{ timesheet.user.username }}</p>
+            <p><strong>Status:</strong> {{ timesheet.get_status_display }}</p>
+            <p><strong>Total hours logged:</strong> {{ timesheet.total_hours_logged }}</p>
+        </div>
+
+        <!--Timesheet Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Details</th>
+                        {% for day in timesheet.days.all %}
+                            <th>{{ day.day_name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dates -->
+                    <tr>
+                        <th>Date</th>
+                        {% for day in timesheet.days.all %}
+                            <td>{{ day.day_date|date:"d-m-Y" }}</td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Status Dropdowns -->
+                    <tr>
+                        <th>Status</th>
+                        {% for day in timesheet.days.all %}
+                            <td>
+                                <select name="status_{{ day.id }}" class="form-select">
+                                    {% for value, label in day_status_choices %}
+                                        <option value="{{ value }}" {% if value == day.status %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Comments -->
+                    <tr>
+                        <th>Comment</th>
+                        {% for day in timesheet.days.all %}
+                            <td>
+                                <textarea name="comment_{{ day.id }}" class="form-control">{{ day.comments }}</textarea>
+                            </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Tasks -->
+                    <tr>
+                        <th>Tasks</th>
+                        {% for day in timesheet.days.all %}
+                            <td>
+                                <div class="day-block" data-day-id="{{ day.id }}">
+                                    <div class="task-container" id="task-container-{{ day.id }}">
+                                        {% for task in day.task_entries.all %}
+                                            <div class="mb-2 task-row">
+                                                <select name="task_type_{{ day.id }}_{{ forloop.counter }}" class="form-select mb-1">
+                                                    {% for value, label in task_type_choices %}
+                                                        <option value="{{ value }}" {% if value == task.task_type %}selected{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <input type="number" step="0.1" max="24"
+                                                       name="hours_{{ day.id }}_{{ forloop.counter }}"
+                                                       value="{{ task.hours_logged }}"
+                                                       class="form-control"
+                                                       placeholder="Hours">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if day.task_entries.count < 10 %}
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary add-task-btn mt-1"
+                                                data-day-id="{{ day.id }}">
+                                            <i class="fas fa-plus"></i> Add Task
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="text-end mt-3">
+            <button type="button" class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#draftModal">
+                Save as Draft
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitModal">
+                Submit Timesheet
+            </button>
+        </div>
+
+        <!-- Draft Modal -->
+        <div class="modal fade" id="draftModal" tabindex="-1" aria-labelledby="draftModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Save Draft?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to save this timesheet as draft for future editing?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                        <button type="submit" class="btn btn-success"
+                                onclick="document.getElementById('form-action').value='draft'">Yes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Modal -->
+        <div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Submit Timesheet?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to submit this timesheet?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                        <button type="submit" class="btn btn-primary"
+                                onclick="document.getElementById('form-action').value='submit'">Yes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- JS -->
+<script src="{% static 'js/edit_timesheet.js' %}"></script>
 {% endblock %}

@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
-from .models import Project, Timesheet, Day, Contributor
+from .models import Project, Timesheet, Day, Contributor, DAY_STATUS, TASK_TYPE
 from django.db.models import Prefetch
 from django.http import HttpResponseRedirect
 from django.contrib import messages
@@ -143,7 +143,7 @@ def create_timesheet(request, slug):
             messages.error(request, clean_error_text)
             return HttpResponseRedirect(reverse('project_view', args=[slug]))
 
-# Edit Timesheet:
+# Edit Timesheet View
 @login_required
 def timesheet_edit(request, slug):
     timesheet = get_object_or_404(Timesheet, slug=slug)
@@ -152,6 +152,65 @@ def timesheet_edit(request, slug):
         messages.error(request, "You are not authorized to edit this timesheet.")
         return HttpResponseRedirect(reverse('project_view', args=[timesheet.project.slug]))
 
+    if request.method == 'POST':
+        action = request.POST.get('action')  # 'submit' or 'draft'
+        errors = []
+
+        for day in timesheet.days.all():
+            # Update day fields
+            status = request.POST.get(f'status_{day.id}')
+            comment = request.POST.get(f'comment_{day.id}')
+            day.status = status
+            day.comments = comment
+
+            # Clear previous tasks
+            day.task_entries.all().delete()
+
+            # Only allow tasks if day is working
+            if status == 'working':
+                for i in range(1, 11):
+                    task_type = request.POST.get(f'task_type_{day.id}_{i}')
+                    hours = request.POST.get(f'hours_{day.id}_{i}')
+                    if task_type and hours:
+                        try:
+                            day.task_entries.create(
+                                task_type=task_type,
+                                hours_logged=float(hours)
+                            )
+                        except ValidationError as e:
+                            errors.extend(e.messages)
+
+            # Save day
+            try:
+                day.save()
+            except ValidationError as e:
+                errors.extend(e.messages)
+
+        # If errors, re-render page with messages
+        if errors:
+            messages.error(request, " ".join(errors))
+            return render(request, 'timesheets/timesheet_edit.html', {
+                'timesheet': timesheet,
+                'day_status_choices': DAY_STATUS,
+                'task_type_choices': TASK_TYPE,
+            })
+
+        # Handle timesheet status
+        if action == 'submit':
+            timesheet.status = 'submitted'
+            timesheet.submitted_on = timezone.now()
+            messages.success(request, "Timesheet submitted successfully.")
+        else:
+            timesheet.status = 'draft'
+            messages.info(request, "Draft saved.")
+
+        timesheet.save()
+        timesheet.update_total_hours()
+        return HttpResponseRedirect(reverse('project_view', args=[timesheet.project.slug]))
+
+    # GET request - initial load
     return render(request, 'timesheets/timesheet_edit.html', {
         'timesheet': timesheet,
+        'day_status_choices': DAY_STATUS,  # Import choices for populating dropdowns
+        'task_type_choices': TASK_TYPE,  # Import choices for populating dropdowns
     })
