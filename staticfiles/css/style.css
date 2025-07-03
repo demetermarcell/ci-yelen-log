@@ -1,103 +1,183 @@
 /* Google Font: Poppins */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 /* CSS Variables */
 :root {
-
-    --brand-font: "Poppins", sans-serif;
-    --brand-dark: #192b38;
-    --brand-blue: #2B4A61;
-    --brand-lblue: #5692BF;
+  --brand-font: "Poppins", sans-serif;
+  --brand-dark: #192b38;
+  --brand-blue: #2b4a61;
+  --brand-lblue: #5692bf;
+  --brand-lgrey: #ebebeb;
 }
-
 
 /* Global Styles: */
 
 body {
-    font-family: var(--brand-font) !important;
-    background-color: white;
-    margin: 1.5vh;
-    min-height: 100vh;
+  font-family: var(--brand-font) !important;
+  background-color: white;
+  min-height: 100vh;
 }
 
-/* Link styles */
-a {
-    text-decoration: none;
-    color: var(--brand-lblue) !important;
+/* Background */
+.bg-lgrey {
+  background-color: var(--brand-lgrey);
 }
 
-a:hover {
-    text-decoration: underline;
+/* Text Color Stles: */
+.text-dark {
+  color: var(--brand-dark) !important;
+}
+.text-dark:hover {
+  color: var(--brand-dark);
+}
+.text-dark:active {
+  color: var(--brand-dark);
 }
 
-a:active {
-    color: var(--brand-blue) !important;
+.text-blue {
+  color: var(--brand-blue);
 }
 
+.text-blue:hover {
+  color: var(--brand-blue);
+}
+
+.text-blue:active {
+  color: var(--brand-blue);
+}
+
+.text-lblue {
+  color: var(--brand-lblue);
+}
+
+.text-lblue:hover {
+  color: var(--brand-lblue);
+}
+
+.text-lblue:active {
+  color: var(--brand-blue);
+}
+
+/* Custom Button styles */
+
+.custom-button {
+  font-family: var(--brand-font) !important;
+  background-color: var(--brand-dark);
+  color: white !important;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.custom-button:hover {
+  background-color: var(--brand-blue);
+}
+
+.custom-button:active {
+  color: var(--brand-lblue) !important;
+}
+
+.custom-button-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
 
 /* Login */
 
 .login-body {
-    background-color: var(--brand-dark);
+  background-color: var(--brand-dark);
+  margin: 1.5vh;
 }
 .login-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
 .login-box {
-    max-width: 400px;
-    width: 100%;
-    background-color: white;
-    padding: 2rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
-    text-align: center;
+  max-width: 400px;
+  width: 100%;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  text-align: center;
 }
 /* Hide Forgot Password link  */
 #id_password_helptext {
-    display: none;
+  display: none;
 }
 
-
-
 .login-btn {
-    background-color: var(--brand-dark);
-    color: white;
-    border: none;
+  background-color: var(--brand-dark);
+  color: white;
+  border: none;
 }
 
 .login-btn:hover {
-    background-color: var(--brand-blue);
-    color:white
+  background-color: var(--brand-blue);
+  color: white;
 }
 
 .login-logo {
-    height: 8vh;
-    width: auto;
-  }
+  height: 8vh;
+  width: auto;
+}
+/* Link styles */
+.login-link {
+  text-decoration: none;
+  color: var(--brand-lblue) !important;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+.login-link:active {
+  color: var(--brand-blue) !important;
+}
 
 /* Signup */
 /* Hide Email div on signup */
 #div_id_email {
-    display: none;
+  display: none;
 }
 
 /* Navbar */
 
-.logo-nav {    
-    height: 6vh;
-    width: auto;
-  }
+.logo-nav {
+  height: 4vh;
+  width: auto;
+}
+
+/* Make hamburger icon company dark: */
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(25,43,56, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Project Dashboard link base */
+.navbar .nav-link.project-dashboard {
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+/* Hover or active effect */
+.navbar .nav-link.project-dashboard:hover,
+.navbar .nav-link.project-dashboard.active {
+  font-size: 1.05rem;
+  color: var(--brand-blue) !important;
+}
 
 /*  Media queries */
 
 /* Small, mobile devices */
 @media screen and (max-width: 430px) {
-    .login-wrapper {
+  .login-wrapper {
     align-items: flex-start;
     padding-top: 4vh;
-}
+  }
 }
