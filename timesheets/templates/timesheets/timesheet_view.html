@@ -66,7 +66,8 @@
             </tbody>
         </table>
     </div>
-    {% if is_owner and timesheet.status == 'submitted' %}
+<!-- Approve/Reject Timesheet -->
+{% if is_owner and timesheet.status == 'submitted' %}
 <div class="mb-3">
     <!-- Approve Button -->
     <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#approveModal">
@@ -123,6 +124,37 @@
     </div>
   </div>
 </div>
+{% endif %}
+<!-- Reopen Timesheet: -->
+{% if timesheet.status == 'rejected' and request.user == timesheet.user %}
+    <div class="text-end mt-3">
+        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#reopenModal">
+            Reopen Timesheet
+        </button>
+    </div>
+<!-- Reopen Confirmation Modal -->
+    <div class="modal fade" id="reopenModal" tabindex="-1" aria-labelledby="reopenModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reopen Timesheet?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to reopen this timesheet for editing?
+                </div>
+                <div class="modal-footer">
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reopen">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                        <button type="submit" class="btn btn-warning">Yes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endif %}
 </div>
 {% endblock %}

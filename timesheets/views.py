@@ -77,23 +77,33 @@ def project_view(request, slug):
 @login_required
 def timesheet_view(request, slug):
     timesheet = get_object_or_404(Timesheet, slug=slug)
-
     project = timesheet.project
     user = request.user
     is_owner = user == project.owner
-    # Approve/Reject logic only for owners:
-    if request.method == "POST" and is_owner and timesheet.status == "submitted":
+    is_author = user == timesheet.user
+
+    if request.method == "POST":
         action = request.POST.get("action")
-        if action == "approve":
+        # Approve/Reject logic only for owners:
+        if action == "approve" and is_owner and timesheet.status == "submitted":
             timesheet.status = "approved"
             timesheet.approved_on = timezone.now()
             timesheet.save()
             messages.success(request, "Timesheet approved.")
-        elif action == "reject":
+            return HttpResponseRedirect(reverse('timesheet_view', args=[timesheet.slug]))
+
+        elif action == "reject" and is_owner and timesheet.status == "submitted":
             timesheet.status = "rejected"
             timesheet.save()
             messages.warning(request, "Timesheet rejected.")
-        return HttpResponseRedirect(reverse('timesheet_view', args=[timesheet.slug]))
+            return HttpResponseRedirect(reverse('timesheet_view', args=[timesheet.slug]))
+        # Reopen logic for authors:
+        elif action == "reopen" and is_author and timesheet.status == "rejected":
+            timesheet.status = "draft"
+            timesheet.submitted_on = None  # Clear submission timestamp
+            timesheet.save()
+            messages.info(request, "Timesheet reopened for editing.")
+            return HttpResponseRedirect(reverse('timesheet_edit', args=[timesheet.slug]))
 
     days = timesheet.days.prefetch_related('task_entries').order_by('day_date')
 
@@ -108,7 +118,6 @@ def timesheet_view(request, slug):
 @login_required
 def create_timesheet(request, slug):
     project = get_object_or_404(Project, slug=slug)
-    
     # Check contributor access
     if not Contributor.objects.filter(user=request.user, project=project, status='active').exists():
         messages.error(request, "You are not an active contributor to this project.")
