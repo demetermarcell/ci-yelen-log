@@ -1,16 +1,26 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
-from .models import Project, Timesheet, Day, Contributor, DAY_STATUS, TASK_TYPE
-from django.db.models import Prefetch
-from django.http import HttpResponseRedirect
-from django.contrib import messages
-from django.utils import timezone
-from django.urls import reverse
 from datetime import timedelta
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseRedirect,
+)
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from django.utils import timezone
+
+from .models import (
+    Project,
+    Timesheet,
+    Contributor,
+    DAY_STATUS,
+    TASK_TYPE,
+)
 
 
-# Create your views here.
 # Projects Dashboard View
 @login_required
 def projects_dashboard(request):
@@ -25,39 +35,38 @@ def projects_dashboard(request):
     return render(request, 'timesheets/projects_dashboard.html', context)
 
 
-# Project View:
+# Project View
 @login_required
 def project_view(request, slug):
     project = get_object_or_404(Project, slug=slug)
     is_owner = request.user == project.owner
 
-    # Check if the user is an active contributor to the project
     is_contributor = Contributor.objects.filter(
         user=request.user,
         project=project,
         status='active'
     ).exists()
 
-    # Timesheets by user for this project
     my_timesheets = Timesheet.objects.filter(
-        user=request.user, project=project
+        user=request.user,
+        project=project
     ).order_by('-start_date')
 
-    # All project timesheets, only visible to owner
-    project_timesheets = Timesheet.objects.filter(
-        project=project,
-        status__in=['submitted', 'approved', 'rejected']
-    ).order_by('-submitted_on') if is_owner else None
+    project_timesheets = (
+        Timesheet.objects.filter(
+            project=project,
+            status__in=['submitted', 'approved', 'rejected']
+        ).order_by('-submitted_on')
+        if is_owner else None
+    )
 
     contributors = project.contributors.all() if is_owner else None
 
-    # Calculate default start and end dates for new timesheet:
     latest_ts = my_timesheets.first()
-    if latest_ts:
-        default_start = latest_ts.end_date + timedelta(days=1)
-    else:
-        default_start = max(project.start_date, timezone.now().date())
-
+    default_start = (
+        latest_ts.end_date + timedelta(days=1)
+        if latest_ts else max(project.start_date, timezone.now().date())
+    )
     default_end = default_start + timedelta(days=6)
 
     context = {
@@ -73,7 +82,7 @@ def project_view(request, slug):
     return render(request, 'timesheets/project_view.html', context)
 
 
-# Timesheet View:
+# Timesheet View
 @login_required
 def timesheet_view(request, slug):
     timesheet = get_object_or_404(Timesheet, slug=slug)
@@ -84,7 +93,7 @@ def timesheet_view(request, slug):
 
     if request.method == "POST":
         action = request.POST.get("action")
-        # Approve/Reject logic only for owners:
+
         if action == "approve" and is_owner and timesheet.status == "submitted":
             timesheet.status = "approved"
             timesheet.approved_on = timezone.now()
@@ -97,15 +106,15 @@ def timesheet_view(request, slug):
             timesheet.save()
             messages.warning(request, "Timesheet rejected.")
             return HttpResponseRedirect(reverse('timesheet_view', args=[timesheet.slug]))
-        # Reopen logic for authors:
+
         elif action == "reopen" and is_author and timesheet.status == "rejected":
             timesheet.status = "draft"
-            timesheet.submitted_on = None  # Clear submission timestamp
+            timesheet.submitted_on = None
             timesheet.save()
             messages.info(request, "Timesheet reopened for editing.")
             return HttpResponseRedirect(reverse('timesheet_edit', args=[timesheet.slug]))
 
-    days = timesheet.days.prefetch_related('task_entries').order_by('day_date')
+    days = timesheet.days.prefetch_related('task_entries').order_by('day_date')  # type: ignore[attr-defined]
 
     return render(request, 'timesheets/timesheet_view.html', {
         'timesheet': timesheet,
@@ -114,43 +123,51 @@ def timesheet_view(request, slug):
     })
 
 
-# Create Timesheet View:
+# Create Timesheet View
 @login_required
-def create_timesheet(request, slug):
+def create_timesheet(request: HttpRequest, slug: str) -> HttpResponse | HttpResponseRedirect:
     project = get_object_or_404(Project, slug=slug)
-    # Check contributor access
+
     if not Contributor.objects.filter(user=request.user, project=project, status='active').exists():
         messages.error(request, "You are not an active contributor to this project.")
         return HttpResponseRedirect(reverse('project_view', args=[slug]))
 
     if request.method == 'POST':
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+        start_date_str = request.POST.get('start_date')
+        end_date_str = request.POST.get('end_date')
 
-        # Convert and validate dates
+        if not start_date_str or not end_date_str:
+            messages.error(request, "Start and end dates are required.")
+            return HttpResponseRedirect(reverse('project_view', args=[slug]))
+
         try:
-            start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date()
-            end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date()
+            start_date = timezone.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = timezone.datetime.strptime(end_date_str, "%Y-%m-%d").date()
         except ValueError:
             messages.error(request, "Invalid date format.")
             return HttpResponseRedirect(reverse('project_view', args=[slug]))
 
-        # Create instance
-        timesheet = Timesheet(user=request.user, project=project, start_date=start_date, end_date=end_date)
+        timesheet = Timesheet(
+            user=request.user,
+            project=project,
+            start_date=start_date,
+            end_date=end_date
+        )
 
         try:
             timesheet.save()
             messages.success(request, "Timesheet created.")
-            # Redirect to edit view:
             return HttpResponseRedirect(reverse('timesheet_edit', args=[timesheet.slug]))
-        # Remove field names and formatting clutter from ValidationError messages:
         except ValidationError as e:
             errors = []
             for field, msgs in e.message_dict.items():
-                errors.extend(msgs)  # Just collect the plain messages
-            clean_error_text = " ".join(errors)
-            messages.error(request, clean_error_text)
+                errors.extend(msgs)
+            messages.error(request, " ".join(errors))
             return HttpResponseRedirect(reverse('project_view', args=[slug]))
+
+    # Fallback for non-POST requests
+    return HttpResponseRedirect(reverse('project_view', args=[slug]))
+
 
 # Edit Timesheet View
 @login_required
@@ -162,20 +179,16 @@ def timesheet_edit(request, slug):
         return HttpResponseRedirect(reverse('project_view', args=[timesheet.project.slug]))
 
     if request.method == 'POST':
-        action = request.POST.get('action')  # 'submit' or 'draft'
+        action = request.POST.get('action')
         errors = []
 
-        for day in timesheet.days.all():
-            # Update day fields
+        for day in timesheet.days.all():  # type: ignore[attr-defined]
             status = request.POST.get(f'status_{day.id}')
             comment = request.POST.get(f'comment_{day.id}')
             day.status = status
             day.comments = comment
-
-            # Clear previous tasks
             day.task_entries.all().delete()
 
-            # Only allow tasks if day is working
             if status == 'working':
                 for i in range(1, 11):
                     task_type = request.POST.get(f'task_type_{day.id}_{i}')
@@ -189,13 +202,11 @@ def timesheet_edit(request, slug):
                         except ValidationError as e:
                             errors.extend(e.messages)
 
-            # Save day
             try:
                 day.save()
             except ValidationError as e:
                 errors.extend(e.messages)
 
-        # If errors, re-render page with messages
         if errors:
             messages.error(request, " ".join(errors))
             return render(request, 'timesheets/timesheet_edit.html', {
@@ -204,7 +215,6 @@ def timesheet_edit(request, slug):
                 'task_type_choices': TASK_TYPE,
             })
 
-        # Handle timesheet status
         if action == 'submit':
             timesheet.status = 'submitted'
             timesheet.submitted_on = timezone.now()
@@ -215,11 +225,11 @@ def timesheet_edit(request, slug):
 
         timesheet.save()
         timesheet.update_total_hours()
+
         return HttpResponseRedirect(reverse('project_view', args=[timesheet.project.slug]))
 
-    # GET request - initial load
     return render(request, 'timesheets/timesheet_edit.html', {
         'timesheet': timesheet,
-        'day_status_choices': DAY_STATUS,  # Import choices for populating dropdowns
-        'task_type_choices': TASK_TYPE,  # Import choices for populating dropdowns
+        'day_status_choices': DAY_STATUS,
+        'task_type_choices': TASK_TYPE,
     })
