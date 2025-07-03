@@ -12,7 +12,7 @@
 
 {% block entrance_box %}
     <!-- Logo -->
-    <img src="{% static 'images/yelen_logo_horizontal.svg' %}" alt="Yelen Log Logo" class="logo-img">
+    <img src="{% static 'images/yelen_logo_horizontal.svg' %}" alt="Yelen Log Logo" class="login-logo">
 
     <!-- Title -->
     <h4 class="mb-4">{% trans "Create Your Yelen Log Account" %}</h4>
@@ -27,6 +27,6 @@
 
     <!-- Link to Login -->
     <div class="links text-center">
-        <p>{% trans "Already have an account?" %} <a href="{% url 'account_login' %}">{% trans "Log in" %}</a></p>
+        <p>{% trans "Already have an account?" %} <a class="login-link" href="{% url 'account_login' %}">{% trans "Log in" %}</a></p>
     </div>
 {% endblock %}

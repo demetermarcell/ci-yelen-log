@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block entrance_box %}
-<img src="{% static 'images/yelen_logo_horizontal.svg' %}" alt="Yelen Log Logo" class="logo-img">
+<img src="{% static 'images/yelen_logo_horizontal.svg' %}" alt="Yelen Log Logo" class="login-logo">
 <h4 class="mb-1">Sign in </h4>
 <form method="POST" action="{% url 'account_login' %}">
     {% csrf_token %}
@@ -28,6 +28,6 @@
 </form>
 
 <div class="links text-center">
-    <p>New to Yelen Log? <a href="{% url 'account_signup' %}">Create an account</a></p>
+    <p>New to Yelen Log? <a class="login-link" href="{% url 'account_signup' %}">Create an account</a></p>
 </div>
 {% endblock %}

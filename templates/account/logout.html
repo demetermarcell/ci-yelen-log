@@ -8,16 +8,18 @@
 {% endblock %}
 
 {% block content %}
-<div>
-    <img src="{% static 'images/yelen_logo_horizontal.svg' %}" alt="Yelen Log Logo" class="logo-img">
-    <h4 class="mb-1">Are you sure you want to sign out? </h4>
-    <form method="post" action="{% url 'account_logout' %}">
+<div class="text-center">
+    <img src="{% static 'images/yelen_logo_horizontal.svg' %}" alt="Yelen Log Logo" class="login-logo mb-3">
+
+    <h4 class="mb-3">Are you sure you want to sign out?</h4>
+
+    <form method="post" action="{% url 'account_logout' %}" class="d-flex justify-content-center gap-3">
         {% csrf_token %}
         {% if redirect_field_value %}
-        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
         {% endif %}
-        <button type="submit" class="btn login-btn w-100 mb-3">Sign Out</button>
-        <a class="btn btn-secondary" href="{{ request.META.HTTP_REFERER|default:'/' }}">No, stay signed in, </a>
+        <button type="submit" class="custom-button">Sign Out</button>
+        <a class="custom-button" href="{{ request.META.HTTP_REFERER|default:'/' }}">No, stay signed in</a>
     </form>
 </div>
 {% endblock %}

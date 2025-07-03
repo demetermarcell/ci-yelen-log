@@ -9,11 +9,19 @@
         <input type="hidden" name="action" id="form-action" value="submit">
 
         <!-- Timesheet Summary -->
-        <div class="mb-3">
-            <p><strong>Project:</strong> {{ timesheet.project.name }}</p>
-            <p><strong>User:</strong> {{ timesheet.user.username }}</p>
-            <p><strong>Status:</strong> {{ timesheet.get_status_display }}</p>
-            <p><strong>Total hours logged:</strong> {{ timesheet.total_hours_logged }}</p>
+        <div class="row mb-3">
+            <div class="col-md-3 col-sm-6 mb-2">
+                <strong>Project:</strong> {{ timesheet.project.name }}
+            </div>
+            <div class="col-md-3 col-sm-6 mb-2">
+                <strong>User:</strong> {{ timesheet.user.username }}
+            </div>
+            <div class="col-md-3 col-sm-6 mb-2">
+                <strong>Status:</strong> {{ timesheet.get_status_display }}
+            </div>
+            <div class="col-md-3 col-sm-6 mb-2">
+                <strong>Total hours logged:</strong> {{ timesheet.total_hours_logged }}
+            </div>
         </div>
 
         <!--Timesheet Table -->
@@ -65,7 +73,7 @@
                         <th>Tasks</th>
                         {% for day in timesheet.days.all %}
                             <td>
-                                <div class="day-block" data-day-id="{{ day.id }}">
+                                <div class="day-block text-center" data-day-id="{{ day.id }}">
                                     <div class="task-container" id="task-container-{{ day.id }}">
                                         {% for task in day.task_entries.all %}
                                             <div class="mb-2 task-row">
@@ -84,9 +92,11 @@
                                     </div>
                                     {% if day.task_entries.count < 10 %}
                                         <button type="button"
-                                                class="btn btn-sm btn-outline-primary add-task-btn mt-1"
-                                                data-day-id="{{ day.id }}">
-                                            <i class="fas fa-plus"></i> Add Task
+                                                class="custom-button add-task-btn mt-1"
+                                                data-day-id="{{ day.id }}"
+                                                title="Add Task"
+                                                aria-label="Add Task">
+                                            <i class="fa-solid fa-plus"></i>
                                         </button>
                                     {% endif %}
                                 </div>
@@ -99,10 +109,10 @@
 
         <!-- Footer Buttons -->
         <div class="text-end mt-3">
-            <button type="button" class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#draftModal">
+            <button type="button" class="custom-button me-2" data-bs-toggle="modal" data-bs-target="#draftModal">
                 Save as Draft
             </button>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitModal">
+            <button type="button" class="custom-button" data-bs-toggle="modal" data-bs-target="#submitModal">
                 Submit Timesheet
             </button>
         </div>
@@ -119,8 +129,8 @@
                         Are you sure you want to save this timesheet as draft for future editing?
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                        <button type="submit" class="btn btn-success"
+                        <button type="button" class="custom-button" data-bs-dismiss="modal">No</button>
+                        <button type="submit" class="custom-button"
                                 onclick="document.getElementById('form-action').value='draft'">Yes</button>
                     </div>
                 </div>
@@ -139,8 +149,8 @@
                         Are you sure you want to submit this timesheet?
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                        <button type="submit" class="btn btn-primary"
+                        <button type="button" class="custom-button" data-bs-dismiss="modal">No</button>
+                        <button type="submit" class="custom-button"
                                 onclick="document.getElementById('form-action').value='submit'">Yes</button>
                     </div>
                 </div>

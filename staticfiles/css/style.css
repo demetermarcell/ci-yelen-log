@@ -74,9 +74,9 @@ a:active {
     color:white
 }
 
-.logo-img {
+.login-logo {
     height: 8vh;
-    width: 30vh;
+    width: auto;
   }
 
 /* Signup */
@@ -85,6 +85,12 @@ a:active {
     display: none;
 }
 
+/* Navbar */
+
+.logo-nav {    
+    height: 6vh;
+    width: auto;
+  }
 
 /*  Media queries */
 

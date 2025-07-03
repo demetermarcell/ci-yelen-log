@@ -23,11 +23,11 @@
                 <td>{{ ts.get_status_display }}</td>
                 <td>{{ ts.submitted_on|date:"d-m-Y" }}</td>
                 <td>{{ ts.approved_on|date:"d-m-Y" }}</td>
-                <td>
+                <td class="text-center">
                     {% if ts.status == 'draft' %}
-                    <a href="{% url 'timesheet_edit' ts.slug %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'timesheet_edit' ts.slug %}" title="Edit" aria-label="Edit Timesheet" role="button"><i class="fa-solid fa-pen-to-square text-dark"></i></a>
                     {% elif ts.status in 'submitted rejected approved' %}
-                    <a href="{% url 'timesheet_view' ts.slug %}" class="btn btn-sm btn-primary">View</a>
+                    <a href="{% url 'timesheet_view' ts.slug %}" title="View" aria-label="View Timesheet" role="button"><i class="fa-solid fa-eye text-dark"></i></a>
                     {% endif %}
                 </td>
             </tr>
