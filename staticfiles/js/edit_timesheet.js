@@ -4,9 +4,11 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".add-task-btn").forEach(function (addBtn) {
         const dayId = addBtn.dataset.dayId;
         const container = document.getElementById(`task-container-${dayId}`);
+        const statusSelect = document.querySelector(`select[name="status_${dayId}"]`);
 
-        if (!container) return;
+        if (!container || !statusSelect) return;
 
+        // Handle add task button click
         addBtn.addEventListener("click", function () {
             const currentTasks = container.querySelectorAll(".task-row").length;
             if (currentTasks >= MAX_TASKS) {
@@ -18,11 +20,44 @@ document.addEventListener("DOMContentLoaded", function () {
             const taskRow = createTaskRow(dayId, taskIndex);
             container.appendChild(taskRow);
         });
+
+        // Handle day status change
+        statusSelect.addEventListener("change", function () {
+            const selectedStatus = this.value;
+            const isWorking = selectedStatus === "working";
+
+            // Show or hide Add Task button
+            addBtn.style.display = isWorking ? "inline-block" : "none";
+
+            // Clear tasks if not working
+            if (!isWorking) {
+                container.innerHTML = "";
+            }
+        });
+
+        // Initial trigger to apply state
+        statusSelect.dispatchEvent(new Event("change"));
     });
+
+    // Handle submit and draft button clicks to set action value
+    const submitBtn = document.querySelector("#submitModal .btn-primary");
+    const draftBtn = document.querySelector("#draftModal .btn-success");
+
+    if (submitBtn) {
+        submitBtn.addEventListener("click", function () {
+            document.getElementById("form-action").value = "submit";
+        });
+    }
+
+    if (draftBtn) {
+        draftBtn.addEventListener("click", function () {
+            document.getElementById("form-action").value = "draft";
+        });
+    }
 });
 
 /**
- * Create a new task row with hardcoded task type options
+ * Create a new task row with predefined task types
  */
 function createTaskRow(dayId, index) {
     const row = document.createElement("div");
@@ -37,7 +72,7 @@ function createTaskRow(dayId, index) {
     defaultOption.value = "";
     defaultOption.textContent = "Select Task";
     select.appendChild(defaultOption);
-
+    // Hardcoded task options as I could not import them from the model properly.
     const taskOptions = [
         ["development", "Development"],
         ["code_review", "Code Review"],
